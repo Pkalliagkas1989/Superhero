@@ -1,0 +1,45 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Villain Dashboard</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Bangers&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Villain Dashboard</h1>
+
+  <div class="controls">
+    <input id="search" placeholder="Search..." />
+    <select id="searchField"></select>
+    <select id="pageSize">
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="all">All</option>
+    </select>
+  </div>
+
+  <table>
+    <thead><tr id="tableHead"></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <div class="pagination" id="pagination"></div>
+
+  <div class="overlay" id="overlay">
+    <div class="detail">
+      <span class="close" id="closeBtn">×</span>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
