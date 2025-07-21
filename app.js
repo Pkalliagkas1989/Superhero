@@ -58,11 +58,18 @@ function renderControls() {
     `<option value="${f.key}">${f.label}</option>`
   ).join('');
   sf.value = state.searchField;
+
+  const sortF = document.getElementById('sortField');
+  sortF.innerHTML = fields.map(f =>
+    `<option value="${f.key}">${f.label}</option>`
+  ).join('');
+  sortF.value = state.sortField;
+
+  document.getElementById('sortDir').value = state.sortDir;
 }
 
-// Render table contents from the in-memory heroes list. Handles
-// filtering, sorting and pagination before updating the DOM.
-function renderTable() {
+// Render card list with filtering, sorting and pagination
+function renderCards() {
   let data = heroes.slice();
 
   // Filter by search term in chosen field
@@ -104,28 +111,38 @@ function renderTable() {
   const start = (state.page-1)*size;
   const pageItems = data.slice(start, start+size);
 
-  // Header row with sort arrows
-  const thead = document.getElementById('tableHead');
-  thead.innerHTML = fields.map(f => {
-    const arrow = f.key===state.sortField
-      ? (state.sortDir==='asc' ? ' ↑' : ' ↓') : '';
-    return `<th data-key="${f.key}">${f.label}${arrow}</th>`;
-  }).join('');
-
-  // Body rows
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = pageItems.map(h => {
-    const cells = fields.map(f => {
-      let v = getNested(h, f.key);
-      if (f.key==='images.xs')
-        v = `<img class="icon" src="${v}" />`;
-      return `<td>${v}</td>`;
-    }).join('');
-    return `<tr data-id="${h.id}">${cells}</tr>`;
-  }).join('');
+  // Card layout
+  const cardsEl = document.getElementById('cards');
+  cardsEl.innerHTML = pageItems.map(h => `
+    <div class="card" data-id="${h.id}">
+      <img src="${h.images.sm}" alt="${h.name}" />
+      <h2>${h.name}</h2>
+      <p><strong>Alias:</strong> ${h.biography.aliases?.[0] || h.name}</p>
+      <p><strong>Full Name:</strong> ${h.biography.fullName || 'Unknown'}</p>
+      <h3>Power Stats</h3>
+      <ul>
+        <li>Intelligence: ${h.powerstats.intelligence}</li>
+        <li>Strength: ${h.powerstats.strength}</li>
+        <li>Speed: ${h.powerstats.speed}</li>
+        <li>Durability: ${h.powerstats.durability}</li>
+        <li>Power: ${h.powerstats.power}</li>
+        <li>Combat: ${h.powerstats.combat}</li>
+      </ul>
+      <h3>Appearance</h3>
+      <ul>
+        <li>Race: ${h.appearance.race}</li>
+        <li>Gender: ${h.appearance.gender}</li>
+        <li>Height: ${h.appearance.height?.[1]}</li>
+        <li>Weight: ${h.appearance.weight?.[1]}</li>
+      </ul>
+      <h3>Biography</h3>
+      <p>Place of Birth: ${h.biography.placeOfBirth}</p>
+      <p>Alignment: ${h.biography.alignment}</p>
+    </div>
+  `).join('');
 
   renderPagination(pages);
-  bindTableEvents();
+  bindCardEvents();
 }
 
 // Build pagination buttons (prev/next and individual pages)
@@ -143,28 +160,15 @@ function renderPagination(pages) {
       if (p) state.page = +p;
       else if (btn.dataset.dir==='prev') state.page--;
       else state.page++;
-      syncURL(); renderTable();
+      syncURL(); renderCards();
     });
   });
 }
 
 // Attach click handlers for sorting table headers and selecting rows
-function bindTableEvents() {
-  document.querySelectorAll('th').forEach(th =>
-    th.onclick = () => {
-      const k = th.dataset.key;
-      if (state.sortField===k)
-        state.sortDir = state.sortDir==='asc'?'desc':'asc';
-      else {
-        state.sortField = k;
-        state.sortDir = 'asc';
-      }
-      state.page = 1;
-      syncURL(); renderTable();
-    }
-  );
-  document.querySelectorAll('tbody tr').forEach(tr =>
-    tr.onclick = () => openDetail(+tr.dataset.id)
+function bindCardEvents() {
+  document.querySelectorAll('.card').forEach(card =>
+    card.onclick = () => openDetail(+card.dataset.id)
   );
 }
 
@@ -247,17 +251,28 @@ async function init() {
   document.getElementById('search').value = state.searchTerm;
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
-    state.page = 1; syncURL(); renderTable();
+    state.page = 1; syncURL(); renderCards();
   });
   document.getElementById('searchField').addEventListener('change', e => {
     state.searchField = e.target.value;
-    state.page = 1; syncURL(); renderTable();
+    state.page = 1; syncURL(); renderCards();
   });
   document.getElementById('pageSize').addEventListener('change', e => {
     state.pageSize = e.target.value==='all'?'all':+e.target.value;
-    state.page = 1; syncURL(); renderTable();
+    state.page = 1; syncURL(); renderCards();
   });
-  renderTable();
+  document.getElementById('sortField').addEventListener('change', e => {
+    state.sortField = e.target.value;
+    state.page = 1; syncURL(); renderCards();
+  });
+  document.getElementById('sortDir').addEventListener('change', e => {
+    state.sortDir = e.target.value;
+    state.page = 1; syncURL(); renderCards();
+  });
+  document.getElementById('burgerBtn').addEventListener('click', () => {
+    document.getElementById('menu').classList.toggle('show');
+  });
+  renderCards();
   if (state.selectedId) openDetail(state.selectedId);
 }
 
