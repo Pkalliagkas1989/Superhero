@@ -15,12 +15,21 @@ const state = {
 
 // Which fields show in table (use metric units by default)
 const fields = [
+  { key: 'images.xs',            label: 'Icon' },
   { key: 'name',                 label: 'Name' },
-  { key: 'biography.aliases[0]', label: 'Alias' },
   { key: 'biography.fullName',   label: 'Full Name' },
-  { key: 'powerstats.power',     label: 'Power' },
-  { key: 'appearance.race',      label: 'Appearance' },
-  { key: 'biography.alignment',  label: 'Biography' }
+  { key: 'powerstats.intelligence', label: 'Intelligence' },
+  { key: 'powerstats.strength',     label: 'Strength' },
+  { key: 'powerstats.speed',        label: 'Speed' },
+  { key: 'powerstats.durability',   label: 'Durability' },
+  { key: 'powerstats.power',        label: 'Power' },
+  { key: 'powerstats.combat',       label: 'Combat' },
+  { key: 'appearance.race',       label: 'Race' },
+  { key: 'appearance.gender',     label: 'Gender' },
+  { key: 'appearance.height[1]',  label: 'Height' },
+  { key: 'appearance.weight[1]',  label: 'Weight' },
+  { key: 'biography.placeOfBirth', label: 'Birthplace' },
+  { key: 'biography.alignment',    label: 'Alignment' }
 ];
 
 // Helper to safely drill into nested props (with array index)
@@ -260,11 +269,8 @@ async function init() {
     state.sortDir = e.target.value;
     state.page = 1; syncURL(); renderCards();
   });
-  const burgerBtn = document.getElementById('burgerBtn');
-  burgerBtn.addEventListener('click', () => {
-    const menu = document.getElementById('menu');
-    menu.classList.toggle('show');
-    burgerBtn.textContent = menu.classList.contains('show') ? '✖' : '☰';
+  document.getElementById('burgerBtn').addEventListener('click', () => {
+    document.getElementById('menu').classList.toggle('show');
   });
   renderCards();
   if (state.selectedId) openDetail(state.selectedId);
