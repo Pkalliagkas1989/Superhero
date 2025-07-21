@@ -149,16 +149,29 @@ function bindTableEvents() {
   );
 }
 
-// Show overlay with large image + full JSON details
+// Show overlay with large image and key details
 function openDetail(id) {
   const h = heroes.find(x=>x.id===id);
   if (!h) return;
   state.selectedId = id; syncURL();
   const c = document.getElementById('detailContent');
   c.innerHTML = `
-    <h2>${h.name} (${h.id})</h2>
+    <h2>${h.name}</h2>
     <img src="${h.images.lg}" />
-    <pre>${JSON.stringify(h, null, 2)}</pre>
+    <p><strong>Full Name:</strong> ${h.biography.fullName || 'Unknown'}</p>
+    <p><strong>Race:</strong> ${h.appearance.race}</p>
+    <p><strong>Gender:</strong> ${h.appearance.gender}</p>
+    <p><strong>Height:</strong> ${h.appearance.height[1]}</p>
+    <p><strong>Weight:</strong> ${h.appearance.weight[1]}</p>
+    <h3>Power Stats</h3>
+    <div class="stats">
+      <div><strong>Intelligence:</strong> ${h.powerstats.intelligence}</div>
+      <div><strong>Strength:</strong> ${h.powerstats.strength}</div>
+      <div><strong>Speed:</strong> ${h.powerstats.speed}</div>
+      <div><strong>Durability:</strong> ${h.powerstats.durability}</div>
+      <div><strong>Power:</strong> ${h.powerstats.power}</div>
+      <div><strong>Combat:</strong> ${h.powerstats.combat}</div>
+    </div>
   `;
   document.getElementById('overlay').style.display = 'flex';
 }

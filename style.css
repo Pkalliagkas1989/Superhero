@@ -47,6 +47,9 @@ th:hover {
 tbody tr:nth-child(odd) {
   background: rgba(0,0,0,0.05);
 }
+tbody tr {
+  cursor: pointer;
+}
 img.icon {
   width: 32px;
   height: 32px;
@@ -61,6 +64,7 @@ img.icon {
   border: 2px solid #000;
   background: #fff;
   font-family: inherit;
+  cursor: pointer;
 }
 .overlay {
   display: none;
@@ -81,6 +85,22 @@ img.icon {
   position: relative;
   font-size: 0.9rem;
 }
+.overlay .detail h2 {
+  font-family: 'Bangers', cursive;
+  font-size: 2rem;
+  margin-top: 0;
+}
+.overlay .detail p {
+  margin: 0.25rem 0;
+}
+.overlay .detail .stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+.overlay .detail .stats div {
+  flex: 1 1 120px;
+}
 .overlay .close {
   position: absolute;
   top: 0.5rem; right: 0.5rem;
@@ -89,7 +109,7 @@ img.icon {
   font-weight: bold;
 }
 .detail img {
-  max-width: 200px;
+  max-width: 300px;
   float: right;
   margin: 0 0 1rem 1rem;
 }
