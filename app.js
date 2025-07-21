@@ -1,4 +1,7 @@
 // app.js — vanilla JS for fetch, state, render, URL sync
+'use strict';
+
+// In-memory array of hero objects loaded from the API
 let heroes = [];
 const state = {
   searchTerm: '',
@@ -30,13 +33,14 @@ const fields = [
 ];
 
 // Helper to safely drill into nested props (with array index)
-const getNested = (obj, path) =>
-  path.split('.').reduce((o,p) => {
-    if (!o) return null;
-    const m = p.match(/(\w+)\[(\d+)\]/);
-    if (m) return o[m[1]]?.[+m[2]];
-    return o[p];
-  }, obj) || 'unknown';
+// rewritten recursively for clarity
+const getNested = (obj, path) => {
+  if (obj == null) return 'unknown';
+  const [part, ...rest] = Array.isArray(path) ? path : path.split('.');
+  const match = part.match(/(\w+)\[(\d+)\]/);
+  const next = match ? obj[match[1]]?.[+match[2]] : obj[part];
+  return rest.length ? getNested(next, rest) : (next ?? 'unknown');
+};
 
 // Compare function that handles numeric strings like "180 cm"
 const compare = (a,b) => {
@@ -47,7 +51,7 @@ const compare = (a,b) => {
   return a.toString().localeCompare(b);
 };
 
-// Populate field‑selector dropdown
+// Populate field selector dropdown based on the available field list
 function renderControls() {
   const sf = document.getElementById('searchField');
   sf.innerHTML = fields.map(f =>
@@ -56,7 +60,8 @@ function renderControls() {
   sf.value = state.searchField;
 }
 
-// Main render: filter, sort, paginate, then draw table & pagination
+// Render table contents from the in-memory heroes list. Handles
+// filtering, sorting and pagination before updating the DOM.
 function renderTable() {
   let data = heroes.slice();
 
@@ -123,7 +128,7 @@ function renderTable() {
   bindTableEvents();
 }
 
-// Build page‑number buttons + prev/next
+// Build pagination buttons (prev/next and individual pages)
 function renderPagination(pages) {
   const el = document.getElementById('pagination');
   let html = `<button ${state.page===1?'disabled':''} data-dir="prev">&lt;</button>`;
@@ -143,7 +148,7 @@ function renderPagination(pages) {
   });
 }
 
-// Attach clicks for sorting headers & opening detail overlay
+// Attach click handlers for sorting table headers and selecting rows
 function bindTableEvents() {
   document.querySelectorAll('th').forEach(th =>
     th.onclick = () => {
@@ -163,7 +168,7 @@ function bindTableEvents() {
   );
 }
 
-// Show overlay with large image and key details
+// Show overlay with a larger image and selected hero details
 function openDetail(id) {
   const h = heroes.find(x=>x.id===id);
   if (!h) return;
@@ -190,17 +195,18 @@ function openDetail(id) {
   document.getElementById('overlay').style.display = 'flex';
 }
 
-// Close overlay
+// Close overlay when the X is clicked and reset selected hero
 document.getElementById('closeBtn').onclick = () => {
   document.getElementById('overlay').style.display = 'none';
   state.selectedId = null; syncURL();
 };
+// Clicking outside the detail box also closes the overlay
 document.getElementById('overlay').onclick = e => {
   if (e.target.id==='overlay')
     document.getElementById('closeBtn').click();
 };
 
-// Keep all state in the URL query (q, field, size, page, sort, hero)
+// Update browser URL so the current state can be bookmarked or shared
 function syncURL() {
   const p = new URLSearchParams();
   if (state.searchTerm)   p.set('q', state.searchTerm);
@@ -213,6 +219,7 @@ function syncURL() {
 }
 
 // On load, pull any values from URL
+// Restore state from the URL query parameters on initial load
 function loadFromURL() {
   const p = new URLSearchParams(location.search);
   if (p.get('q'))      state.searchTerm = p.get('q');
@@ -230,25 +237,29 @@ function loadFromURL() {
 }
 
 // Fetch data and initialize everything
-fetch("https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json")
-  .then(r => r.json())
-  .then(data => {
-    heroes = data;
-    loadFromURL();
-    renderControls();
-    document.getElementById('search').value = state.searchTerm;
-    document.getElementById('search').addEventListener('input', e => {
-      state.searchTerm = e.target.value;
-      state.page = 1; syncURL(); renderTable();
-    });
-    document.getElementById('searchField').addEventListener('change', e => {
-      state.searchField = e.target.value;
-      state.page = 1; syncURL(); renderTable();
-    });
-    document.getElementById('pageSize').addEventListener('change', e => {
-      state.pageSize = e.target.value==='all'?'all':+e.target.value;
-      state.page = 1; syncURL(); renderTable();
-    });
-    renderTable();
-    if (state.selectedId) openDetail(state.selectedId);
+async function init() {
+  const res = await fetch(
+    "https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json"
+  );
+  heroes = await res.json();
+  loadFromURL();
+  renderControls();
+  document.getElementById('search').value = state.searchTerm;
+  document.getElementById('search').addEventListener('input', e => {
+    state.searchTerm = e.target.value;
+    state.page = 1; syncURL(); renderTable();
   });
+  document.getElementById('searchField').addEventListener('change', e => {
+    state.searchField = e.target.value;
+    state.page = 1; syncURL(); renderTable();
+  });
+  document.getElementById('pageSize').addEventListener('change', e => {
+    state.pageSize = e.target.value==='all'?'all':+e.target.value;
+    state.page = 1; syncURL(); renderTable();
+  });
+  renderTable();
+  if (state.selectedId) openDetail(state.selectedId);
+}
+
+// kick everything off
+init();

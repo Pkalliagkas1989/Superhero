@@ -14,6 +14,7 @@
 <body>
   <h1>Villain Dashboard</h1>
 
+  <!-- Search controls -->
   <div class="controls">
     <input id="search" placeholder="Search..." />
     <select id="searchField"></select>
@@ -26,13 +27,16 @@
     </select>
   </div>
 
+  <!-- Results table populated by app.js -->
   <table>
     <thead><tr id="tableHead"></tr></thead>
     <tbody id="tableBody"></tbody>
   </table>
 
+  <!-- Pagination buttons go here -->
   <div class="pagination" id="pagination"></div>
 
+  <!-- Detail overlay shown when a hero is selected -->
   <div class="overlay" id="overlay">
     <div class="detail">
       <span class="close" id="closeBtn">×</span>
@@ -40,6 +44,7 @@
     </div>
   </div>
 
+  <!-- Application logic -->
   <script src="app.js"></script>
 </body>
 </html>
