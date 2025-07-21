@@ -67,15 +67,29 @@ function renderTable() {
       const v = getNested(h, state.searchField).toString().toLowerCase();
       return v.includes(term);
     });
-  }
 
-  // Sort by field & direction
-  data.sort((a,b) => {
-    const va = getNested(a, state.sortField);
-    const vb = getNested(b, state.sortField);
-    const res = compare(va, vb);
-    return state.sortDir==='asc' ? res : -res;
-  });
+    // Sort so items starting with the term appear first
+    data.sort((a,b) => {
+      const vaSearch = getNested(a, state.searchField).toString().toLowerCase();
+      const vbSearch = getNested(b, state.searchField).toString().toLowerCase();
+      const startsA = vaSearch.startsWith(term);
+      const startsB = vbSearch.startsWith(term);
+      if (startsA && !startsB) return -1;
+      if (!startsA && startsB) return 1;
+      const va = getNested(a, state.sortField);
+      const vb = getNested(b, state.sortField);
+      const res = compare(va, vb);
+      return state.sortDir==='asc' ? res : -res;
+    });
+  } else {
+    // Sort by field & direction
+    data.sort((a,b) => {
+      const va = getNested(a, state.sortField);
+      const vb = getNested(b, state.sortField);
+      const res = compare(va, vb);
+      return state.sortDir==='asc' ? res : -res;
+    });
+  }
 
   // Pagination logic
   const total = data.length;
