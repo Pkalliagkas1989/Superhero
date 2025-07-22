@@ -23,21 +23,13 @@ function updateViewButton() {
 
 // Which fields show in table (use metric units by default)
 const fields = [
-  { key: 'images.xs',            label: 'Icon' },
-  { key: 'name',                 label: 'Name' },
-  { key: 'biography.fullName',   label: 'Full Name' },
-  { key: 'powerstats.intelligence', label: 'Intelligence' },
-  { key: 'powerstats.strength',     label: 'Strength' },
-  { key: 'powerstats.speed',        label: 'Speed' },
-  { key: 'powerstats.durability',   label: 'Durability' },
-  { key: 'powerstats.power',        label: 'Power' },
-  { key: 'powerstats.combat',       label: 'Combat' },
-  { key: 'appearance.race',       label: 'Race' },
-  { key: 'appearance.gender',     label: 'Gender' },
-  { key: 'appearance.height[1]',  label: 'Height' },
-  { key: 'appearance.weight[1]',  label: 'Weight' },
-  { key: 'biography.placeOfBirth', label: 'Birthplace' },
-  { key: 'biography.alignment',    label: 'Alignment' }
+  { key: 'images.xs', label: 'Icon' },
+  { key: 'name', label: 'Name' },
+  { key: 'powerstats', label: 'Powerstats' },
+  { key: 'appearance', label: 'Appearance' },
+  { key: 'biography', label: 'Biography' },
+  { key: 'work', label: 'Work' },
+  { key: 'connections', label: 'Connections' }
 ];
 
 // Helper to safely drill into nested props (with array index)
@@ -54,6 +46,8 @@ const getNested = (obj, path) => {
 const compare = (a,b) => {
   if (a == null) return 1;
   if (b == null) return -1;
+  if (typeof a === 'object') a = JSON.stringify(a);
+  if (typeof b === 'object') b = JSON.stringify(b);
   const na = parseFloat(a), nb = parseFloat(b);
   if (!isNaN(na) && !isNaN(nb)) return na - nb;
   return a.toString().localeCompare(b);
@@ -85,14 +79,20 @@ function renderCards() {
   if (state.searchTerm) {
     const term = state.searchTerm.toLowerCase();
     data = data.filter(h => {
-      const v = getNested(h, state.searchField).toString().toLowerCase();
+      const raw = getNested(h, state.searchField);
+      const v = (typeof raw === 'object' ? JSON.stringify(raw) : raw)
+                  .toString().toLowerCase();
       return v.includes(term);
     });
 
     // Sort so items starting with the term appear first
     data.sort((a,b) => {
-      const vaSearch = getNested(a, state.searchField).toString().toLowerCase();
-      const vbSearch = getNested(b, state.searchField).toString().toLowerCase();
+      const aRaw = getNested(a, state.searchField);
+      const bRaw = getNested(b, state.searchField);
+      const vaSearch = (typeof aRaw === 'object' ? JSON.stringify(aRaw) : aRaw)
+                        .toString().toLowerCase();
+      const vbSearch = (typeof bRaw === 'object' ? JSON.stringify(bRaw) : bRaw)
+                        .toString().toLowerCase();
       const startsA = vaSearch.startsWith(term);
       const startsB = vbSearch.startsWith(term);
       if (startsA && !startsB) return -1;
@@ -128,7 +128,8 @@ function renderCards() {
         const val = getNested(h, f.key);
         if (f.key === 'images.xs')
           return `<td><img src="${val}" alt="${h.name}" /></td>`;
-        return `<td>${val}</td>`;
+        const display = typeof val === 'object' ? JSON.stringify(val) : val;
+        return `<td>${display}</td>`;
       }).join('');
       return `<tr data-id="${h.id}">${cells}</tr>`;
     }).join('');
