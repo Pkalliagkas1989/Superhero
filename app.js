@@ -22,8 +22,8 @@ function updateViewButton() {
     btn.textContent = state.viewMode === 'cards' ? 'Cards' : 'List';
 }
 
-// Which fields show in table (use metric units by default)
-const fields = [
+// Which fields are available for searching/sorting
+const allFields = [
   { key: 'images.xs', label: 'Icon' },
   { key: 'name', label: 'Name' },
   { key: 'powerstats.intelligence', label: 'Int' },
@@ -32,6 +32,21 @@ const fields = [
   { key: 'powerstats.durability', label: 'Dur' },
   { key: 'powerstats.power', label: 'Pow' },
   { key: 'powerstats.combat', label: 'Cmb' },
+  { key: 'appearance.height[1]', label: 'Height' },
+  { key: 'appearance.weight[1]', label: 'Weight' },
+  { key: 'appearance.race', label: 'Race' },
+  { key: 'appearance.eyeColor', label: 'Eyes' },
+  { key: 'appearance.hairColor', label: 'Hair' },
+  { key: 'biography.alignment', label: 'Align' },
+  { key: 'work.occupation', label: 'Occupation' },
+  { key: 'connections.groupAffiliation', label: 'Affiliation' }
+];
+
+// Fields used when rendering the table (powerstats grouped together)
+const tableFields = [
+  { key: 'images.xs', label: 'Icon' },
+  { key: 'name', label: 'Name' },
+  { key: 'powerstats', label: 'Powerstats' },
   { key: 'appearance.height[1]', label: 'Height' },
   { key: 'appearance.weight[1]', label: 'Weight' },
   { key: 'appearance.race', label: 'Race' },
@@ -66,13 +81,13 @@ const compare = (a,b) => {
 // Populate field selector dropdown based on the available field list
 function renderControls() {
   const sf = document.getElementById('searchField');
-  sf.innerHTML = fields.map(f =>
+  sf.innerHTML = allFields.map(f =>
     `<option value="${f.key}">${f.label}</option>`
   ).join('');
   sf.value = state.searchField;
 
   const sortF = document.getElementById('sortField');
-  sortF.innerHTML = fields.map(f =>
+  sortF.innerHTML = allFields.map(f =>
     `<option value="${f.key}">${f.label}</option>`
   ).join('');
   sortF.value = state.sortField;
@@ -137,13 +152,19 @@ function renderCards() {
 
   const cardsEl = document.getElementById('cards');
   if (state.viewMode === 'list') {
-    const header = fields.map(f => {
-      const arrow = state.sortField === f.key ?
+    const header = tableFields.map(f => {
+      const arrow = (f.key === 'powerstats' && state.sortField.startsWith('powerstats.')) ||
+                    state.sortField === f.key ?
         (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
       return `<th data-sort="${f.key}">${f.label}${arrow}</th>`;
     }).join('');
     const rows = pageItems.map(h => {
-      const cells = fields.map(f => {
+      const cells = tableFields.map(f => {
+        if (f.key === 'powerstats') {
+          const ps = h.powerstats;
+          const display = `Int:${ps.intelligence} Str:${ps.strength} Spd:${ps.speed} Dur:${ps.durability} Pow:${ps.power} Cmb:${ps.combat}`;
+          return `<td>${display}</td>`;
+        }
         const val = getNested(h, f.key);
         if (f.key === 'images.xs')
           return `<td><img src="${val}" alt="${h.name}" /></td>`;
@@ -216,6 +237,10 @@ function bindCardEvents() {
     th.style.cursor = 'pointer';
     th.onclick = () => {
       const key = th.dataset.sort;
+      if (key === 'powerstats') {
+        openSortModal();
+        return;
+      }
       if (state.sortField === key) {
         state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
       } else {
@@ -267,6 +292,33 @@ document.getElementById('closeBtn').onclick = () => {
 document.getElementById('overlay').onclick = e => {
   if (e.target.id==='overlay')
     document.getElementById('closeBtn').click();
+};
+
+// Modal for choosing how to sort the powerstats column
+function openSortModal() {
+  document.getElementById('statSelect').value = state.sortField.startsWith('powerstats.')
+    ? state.sortField.split('.')[1] : 'intelligence';
+  document.getElementById('statOrder').value = state.sortDir;
+  document.getElementById('sortModal').style.display = 'flex';
+}
+document.getElementById('sortCancel').onclick = () => {
+  document.getElementById('sortModal').style.display = 'none';
+};
+document.getElementById('sortConfirm').onclick = () => {
+  const stat = document.getElementById('statSelect').value;
+  const order = document.getElementById('statOrder').value;
+  state.sortField = `powerstats.${stat}`;
+  state.sortDir = order;
+  document.getElementById('sortField').value = state.sortField;
+  document.getElementById('sortDir').value = state.sortDir;
+  document.getElementById('sortModal').style.display = 'none';
+  state.page = 1;
+  syncURL();
+  renderCards();
+};
+document.getElementById('sortModal').onclick = e => {
+  if (e.target.id==='sortModal')
+    document.getElementById('sortCancel').click();
 };
 
 // Update browser URL so the current state can be bookmarked or shared
