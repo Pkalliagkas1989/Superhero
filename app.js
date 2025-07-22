@@ -19,29 +19,12 @@ const state = {
   eyeColor: '',
   hairColor: ''
 };
-const defaultState = { ...state };
 
 // Update the toggle button text based on current view
 function updateViewButton() {
   const btn = document.getElementById('viewToggleBtn');
   if (btn)
     btn.textContent = state.viewMode === 'cards' ? 'Cards' : 'List';
-}
-
-// Reset all filters and controls to their default values
-function resetFilters() {
-  Object.assign(state, { ...defaultState });
-  document.getElementById('search').value = '';
-  document.getElementById('searchField').value = state.searchField;
-  document.getElementById('pageSize').value = state.pageSize;
-  document.getElementById('sortField').value = state.sortField;
-  document.getElementById('sortDir').value = state.sortDir;
-  document.getElementById('alignmentFilter').value = state.alignment;
-  document.getElementById('viewMode').value = state.viewMode;
-  updateViewButton();
-  state.page = 1;
-  syncURL();
-  renderCards();
 }
 
 // Which fields are available for searching/sorting
@@ -265,11 +248,8 @@ function renderCards() {
           <li>Hair: ${h.appearance.hairColor}</li>
         </ul>
         <h3>Biography</h3>
-        <ul>
-          <li>Alignment: ${h.biography.alignment}</li>
-          <li>Occupation: ${h.work.occupation}</li>
-          <li>Place of Birth: ${h.biography.placeOfBirth}</li>
-        </ul>
+        <p>Place of Birth: ${h.biography.placeOfBirth}</p>
+        <p>Alignment: ${h.biography.alignment}</p>
       </div>
     `).join('');
   }
@@ -355,12 +335,6 @@ function openDetail(id) {
       <div><strong>Power:</strong> ${h.powerstats.power}</div>
       <div><strong>Combat:</strong> ${h.powerstats.combat}</div>
     </div>
-    <h3>Biography</h3>
-    <ul>
-      <li>Alignment: ${h.biography.alignment}</li>
-      <li>Occupation: ${h.work.occupation}</li>
-      <li>Place of Birth: ${h.biography.placeOfBirth}</li>
-    </ul>
   `;
   document.getElementById('overlay').style.display = 'flex';
 }
@@ -546,7 +520,6 @@ async function init() {
     state.page = 1; syncURL(); renderCards();
     updateViewButton();
   });
-  document.getElementById('resetBtn').addEventListener('click', resetFilters);
   document.getElementById('burgerBtn').addEventListener('click', () => {
     document.getElementById('menu').classList.toggle('show');
   });
