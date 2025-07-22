@@ -206,12 +206,14 @@ function renderCards() {
   const cardsEl = document.getElementById('cards');
   if (state.viewMode === 'list') {
     const header = tableFields.map(f => {
+      const sortable = !['images.xs','connections.groupAffiliation'].includes(f.key);
       const arrow = (f.key === 'powerstats' && state.sortField.startsWith('powerstats.')) ||
                     (f.key === 'appearance' && state.sortField.startsWith('appearance.')) ||
                     (f.key === 'biography' && (state.sortField.startsWith('biography.') || state.sortField === 'work.occupation')) ||
                     state.sortField === f.key ?
         (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
-      return `<th data-sort="${f.key}">${f.label}${arrow}</th>`;
+      const attr = sortable ? ` data-sort="${f.key}"` : '';
+      return `<th${attr}>${f.label}${arrow}</th>`;
     }).join('');
     const rows = pageItems.map(h => {
       const cells = tableFields.map(f => {
@@ -457,28 +459,18 @@ document.getElementById('appearanceModal').onclick = e => {
     document.getElementById('appearanceCancel').click();
 };
 
-// Modal for filtering alignment and sorting biography fields
+// Modal for filtering alignment only
 function openBiographyModal() {
-  document.getElementById('alignmentSelect').value = state.alignment;
-  const sf = state.sortField === 'biography.alignment' ? 'alignment'
-             : state.sortField === 'work.occupation' ? 'occupation' : '';
-  document.getElementById('biographySortField').value = sf;
-  document.getElementById('biographySortDir').value = state.sortDir;
-  document.getElementById('biographyModal').style.display = 'flex';
+  document.getElementById("alignmentSelect").value = state.alignment;
+  document.getElementById("biographyModal").style.display = "flex";
 }
 document.getElementById('biographyCancel').onclick = () => {
   document.getElementById('biographyModal').style.display = 'none';
 };
 document.getElementById('biographyConfirm').onclick = () => {
   state.alignment = document.getElementById('alignmentSelect').value;
-  const sf = document.getElementById('biographySortField').value;
-  if (sf === 'alignment') state.sortField = 'biography.alignment';
-  else if (sf === 'occupation') state.sortField = 'work.occupation';
-  state.sortDir = document.getElementById('biographySortDir').value;
-  document.getElementById('sortField').value = state.sortField;
-  document.getElementById('sortDir').value = state.sortDir;
-  document.getElementById('alignmentFilter').value = state.alignment;
-  document.getElementById('biographyModal').style.display = 'none';
+  document.getElementById("alignmentFilter").value = state.alignment;
+  document.getElementById("biographyModal").style.display = "none";
   state.page = 1;
   syncURL();
   renderCards();
