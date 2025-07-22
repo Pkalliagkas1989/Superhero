@@ -28,6 +28,7 @@ function updateViewButton() {
 }
 
 // Which fields are available for searching/sorting
+// Fields that can be used for sorting
 const allFields = [
   { key: 'images.xs', label: 'Icon' },
   { key: 'name', label: 'Name' },
@@ -47,16 +48,23 @@ const allFields = [
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
 
+// Searchable fields mirror the table headers
+const searchFields = [
+  { key: 'images.xs', label: 'Icon' },
+  { key: 'name', label: 'Name' },
+  { key: 'powerstats', label: 'Powerstats' },
+  { key: 'appearance', label: 'Appearance' },
+  { key: 'biography.alignment', label: 'Align' },
+  { key: 'work.occupation', label: 'Occupation' },
+  { key: 'connections.groupAffiliation', label: 'Affiliation' }
+];
+
 // Fields used when rendering the table (powerstats grouped together)
 const tableFields = [
   { key: 'images.xs', label: 'Icon' },
   { key: 'name', label: 'Name' },
   { key: 'powerstats', label: 'Powerstats' },
-  { key: 'appearance.height[1]', label: 'Height' },
-  { key: 'appearance.weight[1]', label: 'Weight' },
-  { key: 'appearance.race', label: 'Race' },
-  { key: 'appearance.eyeColor', label: 'Eyes' },
-  { key: 'appearance.hairColor', label: 'Hair' },
+  { key: 'appearance', label: 'Appearance' },
   { key: 'biography.alignment', label: 'Align' },
   { key: 'work.occupation', label: 'Occupation' },
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
@@ -102,7 +110,7 @@ function computeAppearanceOptions() {
 // Populate field selector dropdown based on the available field list
 function renderControls() {
   const sf = document.getElementById('searchField');
-  sf.innerHTML = allFields.map(f =>
+  sf.innerHTML = searchFields.map(f =>
     `<option value="${f.key}">${f.label}</option>`
   ).join('');
   sf.value = state.searchField;
@@ -188,6 +196,7 @@ function renderCards() {
   if (state.viewMode === 'list') {
     const header = tableFields.map(f => {
       const arrow = (f.key === 'powerstats' && state.sortField.startsWith('powerstats.')) ||
+                    (f.key === 'appearance' && state.sortField.startsWith('appearance.')) ||
                     state.sortField === f.key ?
         (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
       return `<th data-sort="${f.key}">${f.label}${arrow}</th>`;
@@ -197,6 +206,11 @@ function renderCards() {
         if (f.key === 'powerstats') {
           const ps = h.powerstats;
           const display = `Int:${ps.intelligence} Str:${ps.strength} Spd:${ps.speed} Dur:${ps.durability} Pow:${ps.power} Cmb:${ps.combat}`;
+          return `<td>${display}</td>`;
+        }
+        if (f.key === 'appearance') {
+          const a = h.appearance;
+          const display = `Race:${a.race} Gender:${a.gender} Height:${a.height?.[1]} Weight:${a.weight?.[1]} Eyes:${a.eyeColor} Hair:${a.hairColor}`;
           return `<td>${display}</td>`;
         }
         const val = getNested(h, f.key);
@@ -275,6 +289,10 @@ function bindCardEvents() {
       const key = th.dataset.sort;
       if (key === 'powerstats') {
         openSortModal();
+        return;
+      }
+      if (key === 'appearance') {
+        openAppearanceModal();
         return;
       }
       if (state.sortField === key) {
@@ -501,9 +519,6 @@ async function init() {
     state.viewMode = e.target.value;
     state.page = 1; syncURL(); renderCards();
     updateViewButton();
-  });
-  document.getElementById('appearanceBtn').addEventListener('click', () => {
-    openAppearanceModal();
   });
   document.getElementById('burgerBtn').addEventListener('click', () => {
     document.getElementById('menu').classList.toggle('show');
