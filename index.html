@@ -81,6 +81,7 @@
       </label>
       <div class="modal-buttons">
         <button id="sortConfirm">OK</button>
+        <button id="sortDefault">Default</button>
         <button id="sortCancel">Cancel</button>
       </div>
     </div>
@@ -117,7 +118,41 @@
       </label>
       <div class="modal-buttons">
         <button id="appearanceConfirm">OK</button>
+        <button id="appearanceDefault">Default</button>
         <button id="appearanceCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for biography filters and sorting -->
+  <div class="modal" id="biographyModal">
+    <div class="modal-content">
+      <h3>Biography</h3>
+      <label>Alignment:
+        <select id="alignmentSelect">
+          <option value="">Any</option>
+          <option value="good">Good</option>
+          <option value="bad">Bad</option>
+          <option value="neutral">Neutral</option>
+        </select>
+      </label>
+      <label>Sort By:
+        <select id="biographySortField">
+          <option value="">None</option>
+          <option value="alignment">Alignment</option>
+          <option value="occupation">Occupation</option>
+        </select>
+      </label>
+      <label>Order:
+        <select id="biographySortDir">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+      <div class="modal-buttons">
+        <button id="biographyConfirm">OK</button>
+        <button id="biographyDefault">Default</button>
+        <button id="biographyCancel">Cancel</button>
       </div>
     </div>
   </div>
