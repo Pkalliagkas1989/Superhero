@@ -22,17 +22,14 @@ function updateViewButton() {
 }
 
 // Which fields show in table (use metric units by default)
-// Reduced set of fields for the list view
-// Only the most commonly useful bits are shown to avoid clutter
 const fields = [
   { key: 'images.xs', label: 'Icon' },
   { key: 'name', label: 'Name' },
-  { key: 'appearance.race', label: 'Race' },
-  { key: 'appearance.gender', label: 'Gender' },
-  { key: 'biography.alignment', label: 'Alignment' },
-  { key: 'powerstats.intelligence', label: 'Intelligence' },
-  { key: 'powerstats.strength', label: 'Strength' },
-  { key: 'powerstats.power', label: 'Power' }
+  { key: 'powerstats', label: 'Powerstats' },
+  { key: 'appearance', label: 'Appearance' },
+  { key: 'biography', label: 'Biography' },
+  { key: 'work', label: 'Work' },
+  { key: 'connections', label: 'Connections' }
 ];
 
 // Helper to safely drill into nested props (with array index)
@@ -76,8 +73,6 @@ function renderControls() {
 
 // Render card list with filtering, sorting and pagination
 function renderCards() {
-  // keep dropdown values in sync with current state
-  renderControls();
   let data = heroes.slice();
 
   // Filter by search term in chosen field
@@ -127,14 +122,7 @@ function renderCards() {
 
   const cardsEl = document.getElementById('cards');
   if (state.viewMode === 'list') {
-    // Build sortable header - clicking toggles sort direction
-    const header = fields.map(f => {
-      const indicator = state.sortField === f.key
-        ? (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC')
-        : '';
-      return `<th data-field="${f.key}">${f.label}${indicator}</th>`;
-    }).join('');
-
+    const header = fields.map(f => `<th>${f.label}</th>`).join('');
     const rows = pageItems.map(h => {
       const cells = fields.map(f => {
         const val = getNested(h, f.key);
@@ -145,8 +133,7 @@ function renderCards() {
       }).join('');
       return `<tr data-id="${h.id}">${cells}</tr>`;
     }).join('');
-    cardsEl.innerHTML =
-      `<table class="list-table"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+    cardsEl.innerHTML = `<table class="list-table"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
   } else {
     cardsEl.innerHTML = pageItems.map(h => `
       <div class="card" data-id="${h.id}">
@@ -206,22 +193,6 @@ function bindCardEvents() {
   document.querySelectorAll('.card, tr[data-id]').forEach(el =>
     el.onclick = () => openDetail(+el.dataset.id)
   );
-
-  // Enable sorting by clicking on table headers
-  document.querySelectorAll('th[data-field]').forEach(th => {
-    th.onclick = () => {
-      const field = th.dataset.field;
-      if (state.sortField === field) {
-        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        state.sortField = field;
-        state.sortDir = 'asc';
-      }
-      state.page = 1;
-      syncURL();
-      renderCards();
-    };
-  });
 }
 
 // Show overlay with a larger image and selected hero details
