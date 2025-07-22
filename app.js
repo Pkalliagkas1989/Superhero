@@ -3,6 +3,7 @@
 
 // In-memory array of hero objects loaded from the API
 let heroes = [];
+let races = [], genders = [], eyeColors = [], hairColors = [];
 const state = {
   searchTerm: '',
   searchField: 'name',
@@ -12,7 +13,11 @@ const state = {
   sortDir: 'asc',
   alignment: '',
   selectedId: null,
-  viewMode: 'list'
+  viewMode: 'list',
+  race: '',
+  gender: '',
+  eyeColor: '',
+  hairColor: ''
 };
 
 // Update the toggle button text based on current view
@@ -78,6 +83,22 @@ const compare = (a,b) => {
   return a.toString().localeCompare(b);
 };
 
+// Build lists of appearance options for the modal
+function computeAppearanceOptions() {
+  const r = new Set(), g = new Set(), e = new Set(), h = new Set();
+  heroes.forEach(hero => {
+    const a = hero.appearance;
+    if (a.race && a.race !== '-') r.add(a.race);
+    if (a.gender && a.gender !== '-') g.add(a.gender);
+    if (a.eyeColor && a.eyeColor !== '-') e.add(a.eyeColor);
+    if (a.hairColor && a.hairColor !== '-') h.add(a.hairColor);
+  });
+  races = Array.from(r).sort();
+  genders = Array.from(g).sort();
+  eyeColors = Array.from(e).sort();
+  hairColors = Array.from(h).sort();
+}
+
 // Populate field selector dropdown based on the available field list
 function renderControls() {
   const sf = document.getElementById('searchField');
@@ -103,6 +124,19 @@ function renderCards() {
 
   if (state.alignment) {
     data = data.filter(h => h.biography.alignment === state.alignment);
+  }
+
+  if (state.gender) {
+    data = data.filter(h => h.appearance.gender === state.gender);
+  }
+  if (state.race) {
+    data = data.filter(h => h.appearance.race === state.race);
+  }
+  if (state.eyeColor) {
+    data = data.filter(h => h.appearance.eyeColor === state.eyeColor);
+  }
+  if (state.hairColor) {
+    data = data.filter(h => h.appearance.hairColor === state.hairColor);
   }
 
   // Filter by search term in chosen field
@@ -196,6 +230,8 @@ function renderCards() {
           <li>Gender: ${h.appearance.gender}</li>
           <li>Height: ${h.appearance.height?.[1]}</li>
           <li>Weight: ${h.appearance.weight?.[1]}</li>
+          <li>Eyes: ${h.appearance.eyeColor}</li>
+          <li>Hair: ${h.appearance.hairColor}</li>
         </ul>
         <h3>Biography</h3>
         <p>Place of Birth: ${h.biography.placeOfBirth}</p>
@@ -270,6 +306,8 @@ function openDetail(id) {
     <p><strong>Gender:</strong> ${h.appearance.gender}</p>
     <p><strong>Height:</strong> ${h.appearance.height[1]}</p>
     <p><strong>Weight:</strong> ${h.appearance.weight[1]}</p>
+    <p><strong>Eye Color:</strong> ${h.appearance.eyeColor}</p>
+    <p><strong>Hair Color:</strong> ${h.appearance.hairColor}</p>
     <h3>Power Stats</h3>
     <div class="stats">
       <div><strong>Intelligence:</strong> ${h.powerstats.intelligence}</div>
@@ -321,6 +359,58 @@ document.getElementById('sortModal').onclick = e => {
     document.getElementById('sortCancel').click();
 };
 
+// Modal for filtering appearance and sorting height/weight
+function openAppearanceModal() {
+  const raceSel = document.getElementById('raceSelect');
+  raceSel.innerHTML = '<option value="">Any</option>' +
+    races.map(r=>`<option value="${r}">${r}</option>`).join('');
+  raceSel.value = state.race;
+
+  const genderSel = document.getElementById('genderSelect');
+  genderSel.innerHTML = '<option value="">Any</option>' +
+    genders.map(g=>`<option value="${g}">${g}</option>`).join('');
+  genderSel.value = state.gender;
+
+  const eyeSel = document.getElementById('eyeSelect');
+  eyeSel.innerHTML = '<option value="">Any</option>' +
+    eyeColors.map(e=>`<option value="${e}">${e}</option>`).join('');
+  eyeSel.value = state.eyeColor;
+
+  const hairSel = document.getElementById('hairSelect');
+  hairSel.innerHTML = '<option value="">Any</option>' +
+    hairColors.map(h=>`<option value="${h}">${h}</option>`).join('');
+  hairSel.value = state.hairColor;
+
+  const sortFieldSel = document.getElementById('appearanceSortField');
+  sortFieldSel.value = state.sortField === 'appearance.weight[1]' ? 'weight'
+                    : state.sortField === 'appearance.height[1]' ? 'height'
+                    : '';
+  document.getElementById('appearanceSortDir').value = state.sortDir;
+  document.getElementById('appearanceModal').style.display = 'flex';
+}
+document.getElementById('appearanceCancel').onclick = () => {
+  document.getElementById('appearanceModal').style.display = 'none';
+};
+document.getElementById('appearanceConfirm').onclick = () => {
+  state.race = document.getElementById('raceSelect').value;
+  state.gender = document.getElementById('genderSelect').value;
+  state.eyeColor = document.getElementById('eyeSelect').value;
+  state.hairColor = document.getElementById('hairSelect').value;
+  const sf = document.getElementById('appearanceSortField').value;
+  state.sortField = sf ? `appearance.${sf}[1]` : state.sortField;
+  state.sortDir = document.getElementById('appearanceSortDir').value;
+  document.getElementById('sortField').value = state.sortField;
+  document.getElementById('sortDir').value = state.sortDir;
+  document.getElementById('appearanceModal').style.display = 'none';
+  state.page = 1;
+  syncURL();
+  renderCards();
+};
+document.getElementById('appearanceModal').onclick = e => {
+  if (e.target.id==='appearanceModal')
+    document.getElementById('appearanceCancel').click();
+};
+
 // Update browser URL so the current state can be bookmarked or shared
 function syncURL() {
   const p = new URLSearchParams();
@@ -331,6 +421,10 @@ function syncURL() {
   if (state.sortField)    p.set('sort', `${state.sortField},${state.sortDir}`);
   if (state.selectedId)   p.set('hero', state.selectedId);
   if (state.alignment)    p.set('align', state.alignment);
+  if (state.race)        p.set('race', state.race);
+  if (state.gender)      p.set('gender', state.gender);
+  if (state.eyeColor)    p.set('eye', state.eyeColor);
+  if (state.hairColor)   p.set('hair', state.hairColor);
   if (state.viewMode && state.viewMode !== 'cards')
     p.set('view', state.viewMode);
   history.replaceState(null,'',`?${p}`);
@@ -354,6 +448,14 @@ function loadFromURL() {
     state.selectedId = +p.get('hero');
   if (p.get('align'))
     state.alignment = p.get('align');
+  if (p.get('race'))
+    state.race = p.get('race');
+  if (p.get('gender'))
+    state.gender = p.get('gender');
+  if (p.get('eye'))
+    state.eyeColor = p.get('eye');
+  if (p.get('hair'))
+    state.hairColor = p.get('hair');
   if (p.get('view'))
     state.viewMode = p.get('view');
 }
@@ -364,6 +466,7 @@ async function init() {
     "https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json"
   );
   heroes = await res.json();
+  computeAppearanceOptions();
   loadFromURL();
   renderControls();
   document.getElementById('search').value = state.searchTerm;
@@ -398,6 +501,9 @@ async function init() {
     state.viewMode = e.target.value;
     state.page = 1; syncURL(); renderCards();
     updateViewButton();
+  });
+  document.getElementById('appearanceBtn').addEventListener('click', () => {
+    openAppearanceModal();
   });
   document.getElementById('burgerBtn').addEventListener('click', () => {
     document.getElementById('menu').classList.toggle('show');

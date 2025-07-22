@@ -40,6 +40,7 @@
         <option value="cards">Cards</option>
         <option value="list" selected>List</option>
       </select>
+      <button id="appearanceBtn">Appearance</button>
     </div>
   </div>
 
@@ -82,6 +83,42 @@
       <div class="modal-buttons">
         <button id="sortConfirm">OK</button>
         <button id="sortCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for appearance filters and sorting -->
+  <div class="modal" id="appearanceModal">
+    <div class="modal-content">
+      <h3>Appearance</h3>
+      <label>Race:
+        <select id="raceSelect"></select>
+      </label>
+      <label>Gender:
+        <select id="genderSelect"></select>
+      </label>
+      <label>Eye Color:
+        <select id="eyeSelect"></select>
+      </label>
+      <label>Hair Color:
+        <select id="hairSelect"></select>
+      </label>
+      <label>Sort By:
+        <select id="appearanceSortField">
+          <option value="">None</option>
+          <option value="height">Height</option>
+          <option value="weight">Weight</option>
+        </select>
+      </label>
+      <label>Order:
+        <select id="appearanceSortDir">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+      <div class="modal-buttons">
+        <button id="appearanceConfirm">OK</button>
+        <button id="appearanceCancel">Cancel</button>
       </div>
     </div>
   </div>
