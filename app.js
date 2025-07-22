@@ -10,7 +10,8 @@ const state = {
   page: 1,
   sortField: 'name',
   sortDir: 'asc',
-  selectedId: null
+  selectedId: null,
+  viewMode: 'cards'
 };
 
 // Which fields show in table (use metric units by default)
@@ -66,6 +67,7 @@ function renderControls() {
   sortF.value = state.sortField;
 
   document.getElementById('sortDir').value = state.sortDir;
+  document.getElementById('viewMode').value = state.viewMode;
 }
 
 // Render card list with filtering, sorting and pagination
@@ -111,35 +113,48 @@ function renderCards() {
   const start = (state.page-1)*size;
   const pageItems = data.slice(start, start+size);
 
-  // Card layout
   const cardsEl = document.getElementById('cards');
-  cardsEl.innerHTML = pageItems.map(h => `
-    <div class="card" data-id="${h.id}">
-      <img src="${h.images.sm}" alt="${h.name}" />
-      <h2>${h.name}</h2>
-      <p><strong>Alias:</strong> ${h.biography.aliases?.[0] || h.name}</p>
-      <p><strong>Full Name:</strong> ${h.biography.fullName || 'Unknown'}</p>
-      <h3>Power Stats</h3>
-      <ul>
-        <li>Intelligence: ${h.powerstats.intelligence}</li>
-        <li>Strength: ${h.powerstats.strength}</li>
-        <li>Speed: ${h.powerstats.speed}</li>
-        <li>Durability: ${h.powerstats.durability}</li>
-        <li>Power: ${h.powerstats.power}</li>
-        <li>Combat: ${h.powerstats.combat}</li>
-      </ul>
-      <h3>Appearance</h3>
-      <ul>
-        <li>Race: ${h.appearance.race}</li>
-        <li>Gender: ${h.appearance.gender}</li>
-        <li>Height: ${h.appearance.height?.[1]}</li>
-        <li>Weight: ${h.appearance.weight?.[1]}</li>
-      </ul>
-      <h3>Biography</h3>
-      <p>Place of Birth: ${h.biography.placeOfBirth}</p>
-      <p>Alignment: ${h.biography.alignment}</p>
-    </div>
-  `).join('');
+  if (state.viewMode === 'list') {
+    const header = fields.map(f => `<th>${f.label}</th>`).join('');
+    const rows = pageItems.map(h => {
+      const cells = fields.map(f => {
+        const val = getNested(h, f.key);
+        if (f.key === 'images.xs')
+          return `<td><img src="${val}" alt="${h.name}" /></td>`;
+        return `<td>${val}</td>`;
+      }).join('');
+      return `<tr data-id="${h.id}">${cells}</tr>`;
+    }).join('');
+    cardsEl.innerHTML = `<table class="list-table"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+  } else {
+    cardsEl.innerHTML = pageItems.map(h => `
+      <div class="card" data-id="${h.id}">
+        <img src="${h.images.sm}" alt="${h.name}" />
+        <h2>${h.name}</h2>
+        <p><strong>Alias:</strong> ${h.biography.aliases?.[0] || h.name}</p>
+        <p><strong>Full Name:</strong> ${h.biography.fullName || 'Unknown'}</p>
+        <h3>Power Stats</h3>
+        <ul>
+          <li>Intelligence: ${h.powerstats.intelligence}</li>
+          <li>Strength: ${h.powerstats.strength}</li>
+          <li>Speed: ${h.powerstats.speed}</li>
+          <li>Durability: ${h.powerstats.durability}</li>
+          <li>Power: ${h.powerstats.power}</li>
+          <li>Combat: ${h.powerstats.combat}</li>
+        </ul>
+        <h3>Appearance</h3>
+        <ul>
+          <li>Race: ${h.appearance.race}</li>
+          <li>Gender: ${h.appearance.gender}</li>
+          <li>Height: ${h.appearance.height?.[1]}</li>
+          <li>Weight: ${h.appearance.weight?.[1]}</li>
+        </ul>
+        <h3>Biography</h3>
+        <p>Place of Birth: ${h.biography.placeOfBirth}</p>
+        <p>Alignment: ${h.biography.alignment}</p>
+      </div>
+    `).join('');
+  }
 
   renderPagination(pages);
   bindCardEvents();
@@ -167,8 +182,8 @@ function renderPagination(pages) {
 
 // Attach click handlers for sorting table headers and selecting rows
 function bindCardEvents() {
-  document.querySelectorAll('.card').forEach(card =>
-    card.onclick = () => openDetail(+card.dataset.id)
+  document.querySelectorAll('.card, tr[data-id]').forEach(el =>
+    el.onclick = () => openDetail(+el.dataset.id)
   );
 }
 
@@ -219,6 +234,8 @@ function syncURL() {
   if (state.page)         p.set('page', state.page);
   if (state.sortField)    p.set('sort', `${state.sortField},${state.sortDir}`);
   if (state.selectedId)   p.set('hero', state.selectedId);
+  if (state.viewMode && state.viewMode !== 'cards')
+    p.set('view', state.viewMode);
   history.replaceState(null,'',`?${p}`);
 }
 
@@ -238,6 +255,8 @@ function loadFromURL() {
   }
   if (p.get('hero'))
     state.selectedId = +p.get('hero');
+  if (p.get('view'))
+    state.viewMode = p.get('view');
 }
 
 // Fetch data and initialize everything
@@ -249,6 +268,7 @@ async function init() {
   loadFromURL();
   renderControls();
   document.getElementById('search').value = state.searchTerm;
+  document.getElementById('viewMode').value = state.viewMode;
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
     state.page = 1; syncURL(); renderCards();
@@ -267,6 +287,10 @@ async function init() {
   });
   document.getElementById('sortDir').addEventListener('change', e => {
     state.sortDir = e.target.value;
+    state.page = 1; syncURL(); renderCards();
+  });
+  document.getElementById('viewMode').addEventListener('change', e => {
+    state.viewMode = e.target.value;
     state.page = 1; syncURL(); renderCards();
   });
   document.getElementById('burgerBtn').addEventListener('click', () => {
