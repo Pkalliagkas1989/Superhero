@@ -10,8 +10,9 @@ const state = {
   page: 1,
   sortField: 'name',
   sortDir: 'asc',
+  alignment: '',
   selectedId: null,
-  viewMode: 'cards'
+  viewMode: 'list'
 };
 
 // Update the toggle button text based on current view
@@ -25,11 +26,20 @@ function updateViewButton() {
 const fields = [
   { key: 'images.xs', label: 'Icon' },
   { key: 'name', label: 'Name' },
-  { key: 'powerstats', label: 'Powerstats' },
-  { key: 'appearance', label: 'Appearance' },
-  { key: 'biography', label: 'Biography' },
-  { key: 'work', label: 'Work' },
-  { key: 'connections', label: 'Connections' }
+  { key: 'powerstats.intelligence', label: 'Int' },
+  { key: 'powerstats.strength', label: 'Str' },
+  { key: 'powerstats.speed', label: 'Spd' },
+  { key: 'powerstats.durability', label: 'Dur' },
+  { key: 'powerstats.power', label: 'Pow' },
+  { key: 'powerstats.combat', label: 'Cmb' },
+  { key: 'appearance.height[1]', label: 'Height' },
+  { key: 'appearance.weight[1]', label: 'Weight' },
+  { key: 'appearance.race', label: 'Race' },
+  { key: 'appearance.eyeColor', label: 'Eyes' },
+  { key: 'appearance.hairColor', label: 'Hair' },
+  { key: 'biography.alignment', label: 'Align' },
+  { key: 'work.occupation', label: 'Occupation' },
+  { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
 
 // Helper to safely drill into nested props (with array index)
@@ -68,12 +78,17 @@ function renderControls() {
   sortF.value = state.sortField;
 
   document.getElementById('sortDir').value = state.sortDir;
+  document.getElementById('alignmentFilter').value = state.alignment;
   document.getElementById('viewMode').value = state.viewMode;
 }
 
 // Render card list with filtering, sorting and pagination
 function renderCards() {
   let data = heroes.slice();
+
+  if (state.alignment) {
+    data = data.filter(h => h.biography.alignment === state.alignment);
+  }
 
   // Filter by search term in chosen field
   if (state.searchTerm) {
@@ -122,13 +137,17 @@ function renderCards() {
 
   const cardsEl = document.getElementById('cards');
   if (state.viewMode === 'list') {
-    const header = fields.map(f => `<th>${f.label}</th>`).join('');
+    const header = fields.map(f => {
+      const arrow = state.sortField === f.key ?
+        (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
+      return `<th data-sort="${f.key}">${f.label}${arrow}</th>`;
+    }).join('');
     const rows = pageItems.map(h => {
       const cells = fields.map(f => {
         const val = getNested(h, f.key);
         if (f.key === 'images.xs')
           return `<td><img src="${val}" alt="${h.name}" /></td>`;
-        const display = typeof val === 'object' ? JSON.stringify(val) : val;
+        const display = Array.isArray(val) ? val.join(', ') : (val ?? '');
         return `<td>${display}</td>`;
       }).join('');
       return `<tr data-id="${h.id}">${cells}</tr>`;
@@ -137,7 +156,7 @@ function renderCards() {
   } else {
     cardsEl.innerHTML = pageItems.map(h => `
       <div class="card" data-id="${h.id}">
-        <img src="${h.images.sm}" alt="${h.name}" />
+        <img src="${h.images.lg}" alt="${h.name}" />
         <h2>${h.name}</h2>
         <p><strong>Alias:</strong> ${h.biography.aliases?.[0] || h.name}</p>
         <p><strong>Full Name:</strong> ${h.biography.fullName || 'Unknown'}</p>
@@ -193,6 +212,23 @@ function bindCardEvents() {
   document.querySelectorAll('.card, tr[data-id]').forEach(el =>
     el.onclick = () => openDetail(+el.dataset.id)
   );
+  document.querySelectorAll('.list-table th[data-sort]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.onclick = () => {
+      const key = th.dataset.sort;
+      if (state.sortField === key) {
+        state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.sortField = key;
+        state.sortDir = 'asc';
+      }
+      document.getElementById('sortField').value = state.sortField;
+      document.getElementById('sortDir').value = state.sortDir;
+      state.page = 1;
+      syncURL();
+      renderCards();
+    };
+  });
 }
 
 // Show overlay with a larger image and selected hero details
@@ -242,6 +278,7 @@ function syncURL() {
   if (state.page)         p.set('page', state.page);
   if (state.sortField)    p.set('sort', `${state.sortField},${state.sortDir}`);
   if (state.selectedId)   p.set('hero', state.selectedId);
+  if (state.alignment)    p.set('align', state.alignment);
   if (state.viewMode && state.viewMode !== 'cards')
     p.set('view', state.viewMode);
   history.replaceState(null,'',`?${p}`);
@@ -263,6 +300,8 @@ function loadFromURL() {
   }
   if (p.get('hero'))
     state.selectedId = +p.get('hero');
+  if (p.get('align'))
+    state.alignment = p.get('align');
   if (p.get('view'))
     state.viewMode = p.get('view');
 }
@@ -277,6 +316,7 @@ async function init() {
   renderControls();
   document.getElementById('search').value = state.searchTerm;
   document.getElementById('viewMode').value = state.viewMode;
+  document.getElementById('alignmentFilter').value = state.alignment;
   updateViewButton();
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
@@ -296,6 +336,10 @@ async function init() {
   });
   document.getElementById('sortDir').addEventListener('change', e => {
     state.sortDir = e.target.value;
+    state.page = 1; syncURL(); renderCards();
+  });
+  document.getElementById('alignmentFilter').addEventListener('change', e => {
+    state.alignment = e.target.value;
     state.page = 1; syncURL(); renderCards();
   });
   document.getElementById('viewMode').addEventListener('change', e => {

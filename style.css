@@ -98,8 +98,12 @@ h1 {
   padding: 1rem;
 }
 .card img {
-  width: 100%;
-  height: auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
 }
 .card h2 {
   font-family: 'Bangers', cursive;
@@ -181,8 +185,16 @@ h1 {
 }
 .list-table th {
   background: #ffeb3b;
+  cursor: pointer;
 }
 .list-table tr:hover {
   background: #f1f1f1;
   cursor: pointer;
+}
+
+.list-table img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
 }
