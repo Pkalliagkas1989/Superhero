@@ -36,6 +36,23 @@ h1 {
   cursor: pointer;
   z-index: 1000;
 }
+
+#searchBar {
+  position: fixed;
+  top: 0.5rem;
+  left: 3rem;
+  display: flex;
+  gap: 0.25rem;
+  z-index: 1000;
+}
+
+#searchBar > * {
+  padding: 0.25rem;
+  border: 3px solid #000;
+  background: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+}
 #menu {
   display: none;
   position: fixed;

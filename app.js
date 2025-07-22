@@ -7,6 +7,7 @@ let races = [], genders = [], eyeColors = [], hairColors = [];
 const defaultState = {
   searchTerm: '',
   searchField: 'name',
+  searchGroup: 'name',
   pageSize: 20,
   page: 1,
   sortField: 'name',
@@ -59,13 +60,11 @@ const tableFields = [
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
 
-// Search options are derived from the visible table columns so the dropdown
-// always mirrors the headers displayed in the list view. For the dropdown
-// labels we use more descriptive text than the terse table headers so the
-// options are clearer to users. Searching a column containing an object
-// (e.g. "appearance" or "biography") will match any of the values shown in
-// that column because the object is stringified when filtering.
-const searchFields = tableFields.map(f => {
+// Options for searching. The first dropdown lists the visible columns (except
+// the icon) while the second dropdown lets the user pick a specific property
+// within that column. This allows searching individual power stats or
+// appearance attributes separately.
+const searchGroups = tableFields.filter(f => f.key !== 'images.xs').map(f => {
   const friendly = {
     Powerstats: 'Power Stats',
     Appearance: 'Appearance details',
@@ -74,6 +73,43 @@ const searchFields = tableFields.map(f => {
   }[f.label];
   return { ...f, label: friendly || f.label };
 });
+
+const searchOptions = {
+  name: [{ key: 'name', label: 'Name' }],
+  powerstats: [
+    { key: 'powerstats.intelligence', label: 'Intelligence' },
+    { key: 'powerstats.strength', label: 'Strength' },
+    { key: 'powerstats.speed', label: 'Speed' },
+    { key: 'powerstats.durability', label: 'Durability' },
+    { key: 'powerstats.power', label: 'Power' },
+    { key: 'powerstats.combat', label: 'Combat' }
+  ],
+  appearance: [
+    { key: 'appearance.race', label: 'Race' },
+    { key: 'appearance.gender', label: 'Gender' },
+    { key: 'appearance.height[1]', label: 'Height' },
+    { key: 'appearance.weight[1]', label: 'Weight' },
+    { key: 'appearance.eyeColor', label: 'Eye Color' },
+    { key: 'appearance.hairColor', label: 'Hair Color' }
+  ],
+  biography: [
+    { key: 'biography.fullName', label: 'Full Name' },
+    { key: 'biography.placeOfBirth', label: 'Birth Place' },
+    { key: 'biography.alignment', label: 'Alignment' },
+    { key: 'work.occupation', label: 'Occupation' }
+  ],
+  'connections.groupAffiliation': [
+    { key: 'connections.groupAffiliation', label: 'Affiliation' }
+  ]
+};
+
+function deriveSearchGroup(key) {
+  if (key.startsWith('powerstats.')) return 'powerstats';
+  if (key.startsWith('appearance.')) return 'appearance';
+  if (key.startsWith('biography.') || key === 'work.occupation') return 'biography';
+  if (key.startsWith('connections.')) return 'connections.groupAffiliation';
+  return key;
+}
 
 // Helper to safely drill into nested props (with array index)
 // rewritten recursively for clarity
@@ -125,11 +161,13 @@ function resetFilters() {
 
 // Populate field selector dropdown based on the available field list
 function renderControls() {
-  const sf = document.getElementById('searchField');
-  sf.innerHTML = searchFields.map(f =>
+  const sg = document.getElementById('searchGroup');
+  sg.innerHTML = searchGroups.map(f =>
     `<option value="${f.key}">${f.label}</option>`
   ).join('');
-  sf.value = state.searchField;
+  sg.value = state.searchGroup;
+
+  renderSearchFieldOptions();
 
   const sortF = document.getElementById('sortField');
   sortF.innerHTML = allFields.map(f =>
@@ -140,6 +178,19 @@ function renderControls() {
   document.getElementById('sortDir').value = state.sortDir;
   document.getElementById('alignmentFilter').value = state.alignment;
   document.getElementById('viewMode').value = state.viewMode;
+}
+
+function renderSearchFieldOptions() {
+  const sf = document.getElementById('searchField');
+  const opts = searchOptions[state.searchGroup] ||
+    [{ key: state.searchGroup, label: state.searchGroup }];
+  sf.innerHTML = opts.map(o =>
+    `<option value="${o.key}">${o.label}</option>`
+  ).join('');
+  if (!opts.find(o => o.key === state.searchField)) {
+    state.searchField = opts[0].key;
+  }
+  sf.value = state.searchField;
 }
 
 // Render card list with filtering, sorting and pagination
@@ -536,6 +587,7 @@ function loadFromURL() {
     state.hairColor = p.get('hair');
   if (p.get('view'))
     state.viewMode = p.get('view');
+  state.searchGroup = deriveSearchGroup(state.searchField);
 }
 
 // Fetch data and initialize everything
@@ -557,6 +609,11 @@ async function init() {
   updateViewButton();
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
+    state.page = 1; syncURL(); renderCards();
+  });
+  document.getElementById('searchGroup').addEventListener('change', e => {
+    state.searchGroup = e.target.value;
+    renderSearchFieldOptions();
     state.page = 1; syncURL(); renderCards();
   });
   document.getElementById('searchField').addEventListener('change', e => {
