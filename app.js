@@ -582,6 +582,21 @@ async function init() {
   document.getElementById('burgerBtn').addEventListener('click', () => {
     document.getElementById('menu').classList.toggle('show');
   });
+  const searchBtn = document.getElementById('searchBtn');
+  const searchBubble = document.getElementById('searchBubble');
+  if (searchBtn && searchBubble) {
+    searchBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      searchBubble.classList.toggle('show');
+      if (searchBubble.classList.contains('show'))
+        document.getElementById('search').focus();
+    });
+    document.addEventListener('click', e => {
+      if (!searchBubble.contains(e.target) && e.target !== searchBtn) {
+        searchBubble.classList.remove('show');
+      }
+    });
+  }
   document.getElementById('viewToggleBtn').addEventListener('click', () => {
     state.viewMode = state.viewMode === 'cards' ? 'list' : 'cards';
     document.getElementById('viewMode').value = state.viewMode;
