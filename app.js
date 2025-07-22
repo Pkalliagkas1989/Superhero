@@ -14,6 +14,13 @@ const state = {
   viewMode: 'cards'
 };
 
+// Update the toggle button text based on current view
+function updateViewButton() {
+  const btn = document.getElementById('viewToggleBtn');
+  if (btn)
+    btn.textContent = state.viewMode === 'cards' ? 'Cards' : 'List';
+}
+
 // Which fields show in table (use metric units by default)
 const fields = [
   { key: 'images.xs',            label: 'Icon' },
@@ -269,6 +276,7 @@ async function init() {
   renderControls();
   document.getElementById('search').value = state.searchTerm;
   document.getElementById('viewMode').value = state.viewMode;
+  updateViewButton();
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
     state.page = 1; syncURL(); renderCards();
@@ -292,9 +300,16 @@ async function init() {
   document.getElementById('viewMode').addEventListener('change', e => {
     state.viewMode = e.target.value;
     state.page = 1; syncURL(); renderCards();
+    updateViewButton();
   });
   document.getElementById('burgerBtn').addEventListener('click', () => {
     document.getElementById('menu').classList.toggle('show');
+  });
+  document.getElementById('viewToggleBtn').addEventListener('click', () => {
+    state.viewMode = state.viewMode === 'cards' ? 'list' : 'cards';
+    document.getElementById('viewMode').value = state.viewMode;
+    state.page = 1; syncURL(); renderCards();
+    updateViewButton();
   });
   renderCards();
   if (state.selectedId) openDetail(state.selectedId);
