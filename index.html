@@ -12,38 +12,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <button id="burgerBtn" aria-label="menu">☰</button>
   <button id="viewToggleBtn" aria-label="toggle view"></button>
   <div id="searchBar" class="search-bar">
     <input id="search" placeholder="Search..." />
     <select id="searchGroup"></select>
     <select id="searchField"></select>
-  </div>
-  <div id="menu" class="menu">
-    <div class="controls">
-      <select id="sortField"></select>
-      <select id="sortDir">
-        <option value="asc">Asc</option>
-        <option value="desc">Desc</option>
-      </select>
-      <select id="alignmentFilter">
-        <option value="">All Alignments</option>
-        <option value="good">Good</option>
-        <option value="bad">Bad</option>
-        <option value="neutral">Neutral</option>
-      </select>
-      <select id="pageSize">
-        <option value="10">10</option>
-        <option value="20" selected>20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-        <option value="all">All</option>
-      </select>
-      <select id="viewMode">
-        <option value="cards">Cards</option>
-        <option value="list" selected>List</option>
-      </select>
-    </div>
+    <select id="pageSize">
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="all">All</option>
+    </select>
   </div>
 
   <h1>Villain Dashboard</h1>

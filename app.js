@@ -169,15 +169,8 @@ function renderControls() {
 
   renderSearchFieldOptions();
 
-  const sortF = document.getElementById('sortField');
-  sortF.innerHTML = allFields.map(f =>
-    `<option value="${f.key}">${f.label}</option>`
-  ).join('');
-  sortF.value = state.sortField;
-
-  document.getElementById('sortDir').value = state.sortDir;
-  document.getElementById('alignmentFilter').value = state.alignment;
-  document.getElementById('viewMode').value = state.viewMode;
+  const pageSel = document.getElementById('pageSize');
+  if (pageSel) pageSel.value = state.pageSize;
 }
 
 function renderSearchFieldOptions() {
@@ -379,8 +372,6 @@ function bindCardEvents() {
         state.sortField = key;
         state.sortDir = 'asc';
       }
-      document.getElementById('sortField').value = state.sortField;
-      document.getElementById('sortDir').value = state.sortDir;
       state.page = 1;
       syncURL();
       renderCards();
@@ -443,8 +434,6 @@ document.getElementById('sortConfirm').onclick = () => {
   const order = document.getElementById('statOrder').value;
   state.sortField = `powerstats.${stat}`;
   state.sortDir = order;
-  document.getElementById('sortField').value = state.sortField;
-  document.getElementById('sortDir').value = state.sortDir;
   document.getElementById('sortModal').style.display = 'none';
   state.page = 1;
   syncURL();
@@ -499,8 +488,6 @@ document.getElementById('appearanceConfirm').onclick = () => {
   const sf = document.getElementById('appearanceSortField').value;
   state.sortField = sf ? `appearance.${sf}[1]` : state.sortField;
   state.sortDir = document.getElementById('appearanceSortDir').value;
-  document.getElementById('sortField').value = state.sortField;
-  document.getElementById('sortDir').value = state.sortDir;
   document.getElementById('appearanceModal').style.display = 'none';
   state.page = 1;
   syncURL();
@@ -525,7 +512,6 @@ document.getElementById('biographyCancel').onclick = () => {
 };
 document.getElementById('biographyConfirm').onclick = () => {
   state.alignment = document.getElementById('alignmentSelect').value;
-  document.getElementById("alignmentFilter").value = state.alignment;
   document.getElementById("biographyModal").style.display = "none";
   state.page = 1;
   syncURL();
@@ -602,8 +588,6 @@ async function init() {
   loadFromURL();
   renderControls();
   document.getElementById('search').value = state.searchTerm;
-  document.getElementById('viewMode').value = state.viewMode;
-  document.getElementById('alignmentFilter').value = state.alignment;
   updateViewButton();
   document.getElementById('search').addEventListener('input', e => {
     state.searchTerm = e.target.value;
@@ -622,29 +606,9 @@ async function init() {
     state.pageSize = e.target.value==='all'?'all':+e.target.value;
     state.page = 1; syncURL(); renderCards();
   });
-  document.getElementById('sortField').addEventListener('change', e => {
-    state.sortField = e.target.value;
-    state.page = 1; syncURL(); renderCards();
-  });
-  document.getElementById('sortDir').addEventListener('change', e => {
-    state.sortDir = e.target.value;
-    state.page = 1; syncURL(); renderCards();
-  });
-  document.getElementById('alignmentFilter').addEventListener('change', e => {
-    state.alignment = e.target.value;
-    state.page = 1; syncURL(); renderCards();
-  });
-  document.getElementById('viewMode').addEventListener('change', e => {
-    state.viewMode = e.target.value;
-    state.page = 1; syncURL(); renderCards();
-    updateViewButton();
-  });
-  document.getElementById('burgerBtn').addEventListener('click', () => {
-    document.getElementById('menu').classList.toggle('show');
-  });
+  // removed menu-based controls; page size selector is now in the search bar
   document.getElementById('viewToggleBtn').addEventListener('click', () => {
     state.viewMode = state.viewMode === 'cards' ? 'list' : 'cards';
-    document.getElementById('viewMode').value = state.viewMode;
     state.page = 1; syncURL(); renderCards();
     updateViewButton();
   });
