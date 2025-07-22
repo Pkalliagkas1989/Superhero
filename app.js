@@ -1,4 +1,4 @@
-// app.js — vanilla JS for fetch, state, render, URL sync
+// Client-side logic for the Superhero/Villain dashboard
 'use strict';
 
 // In-memory array of hero objects loaded from the API
@@ -22,7 +22,10 @@ const defaultState = {
 };
 const state = { ...defaultState };
 
-// Update the toggle button text based on current view
+/**
+ * Update the text of the view toggle button so it matches the
+ * current `state.viewMode` value.
+ */
 function updateViewButton() {
   const btn = document.getElementById('viewToggleBtn');
   if (btn)
@@ -103,6 +106,12 @@ const searchOptions = {
   ]
 };
 
+/**
+ * Determine the search group dropdown based on a selected field key.
+ *
+ * @param {string} key - Full path to the field.
+ * @returns {string} matching search group key
+ */
 function deriveSearchGroup(key) {
   if (key.startsWith('powerstats.')) return 'powerstats';
   if (key.startsWith('appearance.')) return 'appearance';
@@ -111,8 +120,14 @@ function deriveSearchGroup(key) {
   return key;
 }
 
-// Helper to safely drill into nested props (with array index)
-// rewritten recursively for clarity
+/**
+ * Safely retrieve a nested property value from an object, supporting array
+ * indices in the path string (e.g. `appearance.height[1]`).
+ *
+ * @param {Object} obj - source object
+ * @param {string|string[]} path - dot notation path
+ * @returns {*} value or `'unknown'` if missing
+ */
 const getNested = (obj, path) => {
   if (obj == null) return 'unknown';
   const [part, ...rest] = Array.isArray(path) ? path : path.split('.');
@@ -121,8 +136,11 @@ const getNested = (obj, path) => {
   return rest.length ? getNested(next, rest) : (next ?? 'unknown');
 };
 
-// Compare function that handles numeric strings like "180 cm"
-const compare = (a,b) => {
+/**
+ * Generic compare function for sorting that also handles numeric strings such
+ * as "180 cm".
+ */
+const compare = (a, b) => {
   if (a == null) return 1;
   if (b == null) return -1;
   if (typeof a === 'object') a = JSON.stringify(a);
@@ -132,7 +150,10 @@ const compare = (a,b) => {
   return a.toString().localeCompare(b);
 };
 
-// Build lists of appearance options for the modal
+/**
+ * Build the distinct race, gender, eye color and hair color lists used in the
+ * appearance filter modal.
+ */
 function computeAppearanceOptions() {
   const r = new Set(), g = new Set(), e = new Set(), h = new Set();
   heroes.forEach(hero => {
@@ -148,7 +169,10 @@ function computeAppearanceOptions() {
   hairColors = Array.from(h).sort();
 }
 
-// Reset all filters and sorting to default state
+/**
+ * Restore every filter, sorting option and search term to the initial defaults
+ * defined in `defaultState`.
+ */
 function resetFilters() {
   Object.assign(state, defaultState);
   renderControls();
@@ -159,7 +183,10 @@ function resetFilters() {
   renderCards();
 }
 
-// Populate field selector dropdown based on the available field list
+/**
+ * Render the main search bar controls including the search group selector and
+ * page size selector.
+ */
 function renderControls() {
   const sg = document.getElementById('searchGroup');
   sg.innerHTML = searchGroups.map(f =>
@@ -173,6 +200,10 @@ function renderControls() {
   if (pageSel) pageSel.value = state.pageSize;
 }
 
+/**
+ * Populate the "search field" dropdown options based on the chosen search
+ * group from `state.searchGroup`.
+ */
 function renderSearchFieldOptions() {
   const sf = document.getElementById('searchField');
   const opts = searchOptions[state.searchGroup] ||
@@ -186,7 +217,10 @@ function renderSearchFieldOptions() {
   sf.value = state.searchField;
 }
 
-// Render card list with filtering, sorting and pagination
+/**
+ * Render the list or card view using the current filters, sorting options and
+ * pagination settings stored in `state`.
+ */
 function renderCards() {
   let data = heroes.slice();
 
@@ -325,7 +359,11 @@ function renderCards() {
   bindCardEvents();
 }
 
-// Build pagination buttons (prev/next and individual pages)
+/**
+ * Build and render the pagination buttons and wire up their click handlers.
+ *
+ * @param {number} pages - total number of pages available
+ */
 function renderPagination(pages) {
   const el = document.getElementById('pagination');
   let html = `<button ${state.page===1?'disabled':''} data-dir="prev">&lt;</button>`;
@@ -345,7 +383,10 @@ function renderPagination(pages) {
   });
 }
 
-// Attach click handlers for sorting table headers and selecting rows
+/**
+ * Attach click handlers for sorting table headers and for opening the detail
+ * overlay when a card or table row is clicked.
+ */
 function bindCardEvents() {
   document.querySelectorAll('.card, tr[data-id]').forEach(el =>
     el.onclick = () => openDetail(+el.dataset.id)
@@ -379,7 +420,11 @@ function bindCardEvents() {
   });
 }
 
-// Show overlay with a larger image and selected hero details
+/**
+ * Display the detail overlay for the given hero id.
+ *
+ * @param {number} id - id of the hero to show
+ */
 function openDetail(id) {
   const h = heroes.find(x=>x.id===id);
   if (!h) return;
@@ -419,7 +464,10 @@ document.getElementById('overlay').onclick = e => {
     document.getElementById('closeBtn').click();
 };
 
-// Modal for choosing how to sort the powerstats column
+/**
+ * Open the modal dialog used for selecting which power stat to sort by and the
+ * sort direction.
+ */
 function openSortModal() {
   document.getElementById('statSelect').value = state.sortField.startsWith('powerstats.')
     ? state.sortField.split('.')[1] : 'intelligence';
@@ -448,7 +496,10 @@ document.getElementById('sortModal').onclick = e => {
     document.getElementById('sortCancel').click();
 };
 
-// Modal for filtering appearance and sorting height/weight
+/**
+ * Open the appearance filter modal which also contains options to sort by
+ * height or weight.
+ */
 function openAppearanceModal() {
   const raceSel = document.getElementById('raceSelect');
   raceSel.innerHTML = '<option value="">Any</option>' +
@@ -502,7 +553,9 @@ document.getElementById('appearanceModal').onclick = e => {
     document.getElementById('appearanceCancel').click();
 };
 
-// Modal for filtering alignment only
+/**
+ * Open the biography modal which currently only exposes alignment filtering.
+ */
 function openBiographyModal() {
   document.getElementById("alignmentSelect").value = state.alignment;
   document.getElementById("biographyModal").style.display = "flex";
@@ -526,7 +579,9 @@ document.getElementById('biographyModal').onclick = e => {
     document.getElementById('biographyCancel').click();
 };
 
-// Update browser URL so the current state can be bookmarked or shared
+/**
+ * Update the browser URL so the current state can be bookmarked or shared.
+ */
 function syncURL() {
   const p = new URLSearchParams();
   if (state.searchTerm)   p.set('q', state.searchTerm);
@@ -545,8 +600,9 @@ function syncURL() {
   history.replaceState(null,'',`?${p}`);
 }
 
-// On load, pull any values from URL
-// Restore state from the URL query parameters on initial load
+/**
+ * Restore the application state from the query parameters in the current URL.
+ */
 function loadFromURL() {
   const p = new URLSearchParams(location.search);
   if (p.get('q'))      state.searchTerm = p.get('q');
@@ -576,7 +632,10 @@ function loadFromURL() {
   state.searchGroup = deriveSearchGroup(state.searchField);
 }
 
-// Fetch data and initialize everything
+/**
+ * Fetch the character data, restore state from the URL and register event
+ * handlers to initialise the application.
+ */
 async function init() {
   const res = await fetch(
     "https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json"
