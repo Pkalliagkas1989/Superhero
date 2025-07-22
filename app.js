@@ -4,7 +4,7 @@
 // In-memory array of hero objects loaded from the API
 let heroes = [];
 let races = [], genders = [], eyeColors = [], hairColors = [];
-const state = {
+const defaultState = {
   searchTerm: '',
   searchField: 'name',
   pageSize: 20,
@@ -19,6 +19,7 @@ const state = {
   eyeColor: '',
   hairColor: ''
 };
+const state = { ...defaultState };
 
 // Update the toggle button text based on current view
 function updateViewButton() {
@@ -65,8 +66,7 @@ const tableFields = [
   { key: 'name', label: 'Name' },
   { key: 'powerstats', label: 'Powerstats' },
   { key: 'appearance', label: 'Appearance' },
-  { key: 'biography.alignment', label: 'Align' },
-  { key: 'work.occupation', label: 'Occupation' },
+  { key: 'biography', label: 'Biography' },
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
 
@@ -105,6 +105,17 @@ function computeAppearanceOptions() {
   genders = Array.from(g).sort();
   eyeColors = Array.from(e).sort();
   hairColors = Array.from(h).sort();
+}
+
+// Reset all filters and sorting to default state
+function resetFilters() {
+  Object.assign(state, defaultState);
+  renderControls();
+  document.getElementById('search').value = state.searchTerm;
+  updateViewButton();
+  state.page = 1;
+  syncURL();
+  renderCards();
 }
 
 // Populate field selector dropdown based on the available field list
@@ -197,6 +208,7 @@ function renderCards() {
     const header = tableFields.map(f => {
       const arrow = (f.key === 'powerstats' && state.sortField.startsWith('powerstats.')) ||
                     (f.key === 'appearance' && state.sortField.startsWith('appearance.')) ||
+                    (f.key === 'biography' && (state.sortField.startsWith('biography.') || state.sortField === 'work.occupation')) ||
                     state.sortField === f.key ?
         (state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
       return `<th data-sort="${f.key}">${f.label}${arrow}</th>`;
@@ -211,6 +223,10 @@ function renderCards() {
         if (f.key === 'appearance') {
           const a = h.appearance;
           const display = `Race:${a.race} Gender:${a.gender} Height:${a.height?.[1]} Weight:${a.weight?.[1]} Eyes:${a.eyeColor} Hair:${a.hairColor}`;
+          return `<td>${display}</td>`;
+        }
+        if (f.key === 'biography') {
+          const display = `Align:${h.biography.alignment} Occ:${h.work.occupation}`;
           return `<td>${display}</td>`;
         }
         const val = getNested(h, f.key);
@@ -295,6 +311,10 @@ function bindCardEvents() {
         openAppearanceModal();
         return;
       }
+      if (key === 'biography') {
+        openBiographyModal();
+        return;
+      }
       if (state.sortField === key) {
         state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
       } else {
@@ -372,6 +392,10 @@ document.getElementById('sortConfirm').onclick = () => {
   syncURL();
   renderCards();
 };
+document.getElementById('sortDefault').onclick = () => {
+  document.getElementById('sortModal').style.display = 'none';
+  resetFilters();
+};
 document.getElementById('sortModal').onclick = e => {
   if (e.target.id==='sortModal')
     document.getElementById('sortCancel').click();
@@ -424,9 +448,48 @@ document.getElementById('appearanceConfirm').onclick = () => {
   syncURL();
   renderCards();
 };
+document.getElementById('appearanceDefault').onclick = () => {
+  document.getElementById('appearanceModal').style.display = 'none';
+  resetFilters();
+};
 document.getElementById('appearanceModal').onclick = e => {
   if (e.target.id==='appearanceModal')
     document.getElementById('appearanceCancel').click();
+};
+
+// Modal for filtering alignment and sorting biography fields
+function openBiographyModal() {
+  document.getElementById('alignmentSelect').value = state.alignment;
+  const sf = state.sortField === 'biography.alignment' ? 'alignment'
+             : state.sortField === 'work.occupation' ? 'occupation' : '';
+  document.getElementById('biographySortField').value = sf;
+  document.getElementById('biographySortDir').value = state.sortDir;
+  document.getElementById('biographyModal').style.display = 'flex';
+}
+document.getElementById('biographyCancel').onclick = () => {
+  document.getElementById('biographyModal').style.display = 'none';
+};
+document.getElementById('biographyConfirm').onclick = () => {
+  state.alignment = document.getElementById('alignmentSelect').value;
+  const sf = document.getElementById('biographySortField').value;
+  if (sf === 'alignment') state.sortField = 'biography.alignment';
+  else if (sf === 'occupation') state.sortField = 'work.occupation';
+  state.sortDir = document.getElementById('biographySortDir').value;
+  document.getElementById('sortField').value = state.sortField;
+  document.getElementById('sortDir').value = state.sortDir;
+  document.getElementById('alignmentFilter').value = state.alignment;
+  document.getElementById('biographyModal').style.display = 'none';
+  state.page = 1;
+  syncURL();
+  renderCards();
+};
+document.getElementById('biographyDefault').onclick = () => {
+  document.getElementById('biographyModal').style.display = 'none';
+  resetFilters();
+};
+document.getElementById('biographyModal').onclick = e => {
+  if (e.target.id==='biographyModal')
+    document.getElementById('biographyCancel').click();
 };
 
 // Update browser URL so the current state can be bookmarked or shared
