@@ -596,10 +596,8 @@ async function init() {
     "https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json"
   );
   const rawHeroes = await res.json();
-  heroes = rawHeroes.filter(h => {
-    const a = h.biography?.alignment?.toLowerCase();
-    return ['good', 'bad', 'neutral'].includes(a);
-  });
+  // Include every hero from the dataset, even if alignment is missing
+  heroes = rawHeroes;
   computeAppearanceOptions();
   loadFromURL();
   renderControls();
