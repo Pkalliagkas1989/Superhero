@@ -25,17 +25,6 @@ h1 {
   cursor: pointer;
   z-index: 1000;
 }
-#searchBtn {
-  position: fixed;
-  top: 0.5rem;
-  right: 3.5rem;
-  background: #ffeb3b;
-  border: 4px solid #000;
-  font-size: 1rem;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  z-index: 1000;
-}
 #viewToggleBtn {
   position: fixed;
   top: 0.5rem;
@@ -80,49 +69,6 @@ h1 {
   height: 0;
   border: 10px solid transparent;
   border-top-color: #fff;
-}
-#searchBubble {
-  display: none;
-  position: fixed;
-  top: 2.5rem;
-  right: 3.5rem;
-  background: #fff;
-  border: 4px solid #000;
-  border-radius: 1rem;
-  padding: 0.5rem;
-  z-index: 999;
-}
-#searchBubble.show {
-  display: block;
-}
-#searchBubble::after {
-  content: '';
-  position: absolute;
-  right: 0.75rem;
-  top: -20px;
-  width: 0;
-  height: 0;
-  border: 10px solid transparent;
-  border-bottom-color: #000;
-}
-#searchBubble::before {
-  content: '';
-  position: absolute;
-  right: 0.85rem;
-  top: -18px;
-  width: 0;
-  height: 0;
-  border: 10px solid transparent;
-  border-bottom-color: #fff;
-}
-#searchBubble input,
-#searchBubble select {
-  padding: 0.5rem;
-  border: 3px solid #000;
-  background: #fff;
-  font-size: 1rem;
-  font-family: inherit;
-  margin-right: 0.25rem;
 }
 .controls {
   display: flex;
