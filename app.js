@@ -49,17 +49,6 @@ const allFields = [
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
 
-// Searchable fields mirror the table headers
-const searchFields = [
-  { key: 'images.xs', label: 'Icon' },
-  { key: 'name', label: 'Name' },
-  { key: 'powerstats', label: 'Powerstats' },
-  { key: 'appearance', label: 'Appearance' },
-  { key: 'biography.alignment', label: 'Align' },
-  { key: 'work.occupation', label: 'Occupation' },
-  { key: 'connections.groupAffiliation', label: 'Affiliation' }
-];
-
 // Fields used when rendering the table (powerstats grouped together)
 const tableFields = [
   { key: 'images.xs', label: 'Icon' },
@@ -69,6 +58,22 @@ const tableFields = [
   { key: 'biography', label: 'Biography' },
   { key: 'connections.groupAffiliation', label: 'Affiliation' }
 ];
+
+// Search options are derived from the visible table columns so the dropdown
+// always mirrors the headers displayed in the list view. For the dropdown
+// labels we use more descriptive text than the terse table headers so the
+// options are clearer to users. Searching a column containing an object
+// (e.g. "appearance" or "biography") will match any of the values shown in
+// that column because the object is stringified when filtering.
+const searchFields = tableFields.map(f => {
+  const friendly = {
+    Powerstats: 'Power Stats',
+    Appearance: 'Appearance details',
+    Biography: 'Biography / alignment',
+    Affiliation: 'Group affiliation'
+  }[f.label];
+  return { ...f, label: friendly || f.label };
+});
 
 // Helper to safely drill into nested props (with array index)
 // rewritten recursively for clarity
