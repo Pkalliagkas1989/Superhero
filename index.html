@@ -59,6 +59,33 @@
     </div>
   </div>
 
+  <!-- Modal for choosing powerstat sort -->
+  <div class="modal" id="sortModal">
+    <div class="modal-content">
+      <h3>Sort Powerstats</h3>
+      <label>Stat:
+        <select id="statSelect">
+          <option value="intelligence">Intelligence</option>
+          <option value="strength">Strength</option>
+          <option value="speed">Speed</option>
+          <option value="durability">Durability</option>
+          <option value="power">Power</option>
+          <option value="combat">Combat</option>
+        </select>
+      </label>
+      <label>Order:
+        <select id="statOrder">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+      <div class="modal-buttons">
+        <button id="sortConfirm">OK</button>
+        <button id="sortCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Application logic -->
   <script src="app.js"></script>
 </body>
