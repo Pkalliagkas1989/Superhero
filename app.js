@@ -606,6 +606,9 @@ async function init() {
     state.pageSize = e.target.value==='all'?'all':+e.target.value;
     state.page = 1; syncURL(); renderCards();
   });
+  document.getElementById('searchDefault').addEventListener('click', () => {
+    resetFilters();
+  });
   // removed menu-based controls; page size selector is now in the search bar
   document.getElementById('viewToggleBtn').addEventListener('click', () => {
     state.viewMode = state.viewMode === 'cards' ? 'list' : 'cards';
